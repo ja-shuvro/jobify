@@ -1,5 +1,3 @@
-Here is an example of a `README.md` file for your **Jobify** project:
-
 ```markdown
 # Jobify
 
