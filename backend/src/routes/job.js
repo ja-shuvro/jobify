@@ -1,6 +1,7 @@
 const express = require("express");
-const { createJob, getJobs, updateJob, deleteJob } = require("../controllers/jobController");
-const authenticate = require("../middlewares/authMiddleware");
+const { job } = require("../controllers/");
+const authenticate = require("../middlewares/auth");
+const { createJob, getJobs, getJobById, updateJob, deleteJob } = job;
 
 const router = express.Router();
 
@@ -9,6 +10,7 @@ router.route("/")
     .get(getJobs);
 
 router.route("/:id")
+    .get(getJobById)
     .put(authenticate(["admin", "super-admin"]), updateJob)
     .delete(authenticate(["admin", "super-admin"]), deleteJob);
 

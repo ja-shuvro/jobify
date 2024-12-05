@@ -1,6 +1,7 @@
 const express = require("express");
-const { createCompany, getCompanies, updateCompany, deleteCompany } = require("../controllers/companyController");
-const authenticate = require("../middlewares/authMiddleware");
+const { company } = require("../controllers/");
+const { createCompany, getCompanies, getCompanyById, updateCompany, deleteCompany } = company;
+const authenticate = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -9,6 +10,7 @@ router.route("/")
     .get(getCompanies);
 
 router.route("/:id")
+    .get(getCompanyById)
     .put(authenticate(["admin", "super-admin"]), updateCompany)
     .delete(authenticate(["admin", "super-admin"]), deleteCompany);
 

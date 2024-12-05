@@ -22,13 +22,14 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Routes
-const authRoutes = require("./routes/authRoutes");
-const companyRoutes = require("./routes/companyRoutes");
-const jobRoutes = require("./routes/jobRoutes");
+const auth = require("./routes/auth");
+const routes = require("./routes/router");
 
-app.use("/api/auth", authRoutes);
-app.use("/api/companies", companyRoutes);
-app.use("/api/jobs", jobRoutes);
+
+app.use("/api/auth", auth);
+app.use("/api", routes);
+
+
 
 // Error Handler
 app.use(errorHandler);

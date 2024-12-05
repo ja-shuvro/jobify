@@ -1,6 +1,7 @@
-const User = require("../models/userModel");
+const User = require("../models/user");
 const bcrypt = require("bcryptjs");
-const { generateToken } = require("../utils/jwtUtils");
+const { generateToken } = require("../utils/jwt");
+const { paginate } = require("../utils/pagination");
 
 /**
  * Register a new user
@@ -14,7 +15,7 @@ const register = async (req, res) => {
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: "User already exists" });
+            return res.status(400).json({ error: "User already exists in this email." });
         }
 
         // Create new user
@@ -57,10 +58,12 @@ const login = async (req, res) => {
             process.env.JWT_EXPIRY
         );
 
-        res.json({ user, token });
+
+        res.status(200).json({ user, token });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 };
+
 
 module.exports = { register, login };
