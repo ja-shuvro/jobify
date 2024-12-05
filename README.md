@@ -1,4 +1,3 @@
-```markdown
 # Jobify
 
 Jobify is a job portal application that allows companies to post job opportunities and users to search and apply for jobs. The project is built with a **backend** that supports user authentication, job posting, and job search functionality. It is designed to provide an easy-to-use platform for employers and job seekers.
@@ -55,7 +54,7 @@ Make sure you have the following installed:
    ```bash
    git clone https://github.com/your-username/jobify.git
    cd jobify/backend
-   ```
+  
 
 2. **Install Backend Dependencies**:
 
@@ -63,7 +62,7 @@ Make sure you have the following installed:
 
    ```bash
    npm install
-   ```
+
 
 3. **Set Up Environment Variables**:
 
@@ -131,7 +130,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **JWT** - Authentication solution.
 - **MongoDB** & **MySQL** - Databases for storing user and job data.
 - **Redis** - Caching mechanism.
-```
+
 
 ---
 
