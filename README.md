@@ -7,7 +7,7 @@ Jobify is a job portal application that allows companies to post job opportuniti
 ## Features
 
 - **User Authentication:**
-  - Sign up and login functionality for users and companies.
+  - Sign-up and login functionality for users and companies.
   - JWT-based authentication for secure user sessions.
   
 - **Job Posting:**
@@ -26,13 +26,12 @@ Jobify is a job portal application that allows companies to post job opportuniti
 ## Tech Stack
 
 ### Backend
-- **Node.js**: JavaScript runtime used for building the backend.
+- **Node.js**: JavaScript runtime is used to build the backend.
 - **Express.js**: Web framework for building APIs.
 - **JWT**: JSON Web Tokens for user authentication.
 - **MongoDB**: Database for user-related data (e.g., profile, authentication).
-- **MySQL**: Database for storing job posts and other related information.
 - **Redis**: Caching service for fast access to frequently used data.
-- **Bcryptjs**: Library for hashing user passwords securely.
+- **Bcryptjs**: Library for securely hashing user passwords.
 - **Helmet**: Middleware for setting security-related HTTP headers.
 
 ---
