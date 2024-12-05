@@ -19,7 +19,7 @@ Jobify is a job portal application that allows companies to post job opportuniti
 
 - **Backend Services:**
   - RESTful API for managing user and job data.
-  - Data storage using **MongoDB** for users and **MySQL** for job listings.
+  - Data storage using **MongoDB** for users and job listings.
   
 ---
 
@@ -43,7 +43,6 @@ Jobify is a job portal application that allows companies to post job opportuniti
 Make sure you have the following installed:
 - **Node.js** (v14 or higher)
 - **MongoDB** (local or hosted)
-- **MySQL** (local or hosted)
 - **Redis** (local or hosted)
 
 ### Steps
@@ -72,7 +71,6 @@ Make sure you have the following installed:
    JWT_SECRET=your_jwt_secret
    JWT_EXPIRY=1d
    MONGO_URI=mongodb://localhost:27017/jobify
-   MYSQL_URI=mysql://user:password@localhost:3306/jobify
    REDIS_HOST=127.0.0.1
    REDIS_PORT=6379
    ```
@@ -127,7 +125,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Node.js** - JavaScript runtime.
 - **Express.js** - Web framework for building APIs.
 - **JWT** - Authentication solution.
-- **MongoDB** & **MySQL** - Databases for storing user and job data.
+- **MongoDB** - Databases for storing user and job data.
 - **Redis** - Caching mechanism.
 
 
