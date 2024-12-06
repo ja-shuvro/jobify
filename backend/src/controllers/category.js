@@ -1,21 +1,33 @@
 const JobCategory = require("../models/category");
 const { paginate } = require("../utils/pagination");
+const generateDescription = require("../services/aiService");
 
 // Create Job Category
 const createJobCategory = async (req, res) => {
     try {
-        const { name, description } = req.body;
+        const { name, parentCategory } = req.body;
 
         if (!name) {
-            return res.status(400).json({ message: "Name is required" });
+            return res.status(400).json({ message: "Category name is required" });
         }
 
-        const category = new JobCategory({ name, description, createdBy: req.user.id });
+        // Generate category description using AI
+        const aiGeneratedDescription = await generateDescription({
+            name,
+            parentCategory,
+        }, "category");
+
+        const category = new Category({
+            name,
+            parentCategory,
+            description: aiGeneratedDescription,
+        });
+
         await category.save();
 
-        res.status(201).json({ message: "Job category created successfully", category });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(201).json(category);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 };
 

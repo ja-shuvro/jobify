@@ -1,15 +1,38 @@
 const Job = require("../models/job");
 const { paginate } = require("..//utils/pagination");
+const generateDescription = require("../services/aiService");
 
 // Create Job
 const createJob = async (req, res) => {
     try {
-        const { name, logo, description, website } = req.body;
-        if (!name) {
-            return res.status(400).json({ message: "Name is required" });
+        const { title, company, category, createdBy, location, salary, jobType, description } = req.body;
+
+        if (!title || !company || !category || !location || !salary || !jobType) {
+            return res.status(400).json({ message: "All fields are required" });
         }
 
-        const job = new Job({ name, logo, description, website, createdBy: req.user.id });
+        // Generate job description using AI
+        const aiGeneratedDescription = await generateDescription({
+            title,
+            company,
+            category,
+            location,
+            salary,
+            jobType,
+            description,
+        }, "job");
+
+        const job = new Job({
+            title,
+            company,
+            category,
+            createdBy,
+            location,
+            salary,
+            jobType,
+            description: aiGeneratedDescription,
+        });
+
         await job.save();
 
         res.status(201).json(job);

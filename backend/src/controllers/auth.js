@@ -51,6 +51,10 @@ const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) throw new Error("Invalid credentials");
 
+        // Vailde User
+        const role = user.role;
+        if (role === 'user') throw new Error("Forbidden")
+
         // Generate token
         const token = generateToken(
             { id: user._id, role: user.role },

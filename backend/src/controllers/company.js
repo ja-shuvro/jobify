@@ -1,15 +1,23 @@
 const Company = require("../models/company");
 const { paginate } = require("../utils/pagination");
+const generateDescription = require("../services/aiService");
 
 // Create Company
 const createCompany = async (req, res) => {
     try {
         const { name, logo, description, website } = req.body;
-        if (!name) {
-            return res.status(400).json({ message: "Name is required" });
-        }
 
-        const company = new Company({ name, logo, description, website, createdBy: req.user.id });
+        // If no description is provided, generate one using AI
+        const companyDescription = description || await generateDescription(name);
+
+        const company = new Company({
+            name,
+            logo,
+            description: companyDescription,
+            website,
+            createdBy: req.user.id
+        });
+
         await company.save();
 
         res.status(201).json(company);
