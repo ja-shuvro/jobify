@@ -15,6 +15,11 @@ const jobTypeSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
+    jobCount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
     jobs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Job",

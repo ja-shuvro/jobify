@@ -3,9 +3,17 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/index';
 
-import LoginPage from '@/pages/login';
-import DashboardPage from '@/pages/dashboard';
-import ErrorPage from '@/pages/error';
+import {
+    CategoriesPage,
+    CompaniesPage,
+    DashboardPage,
+    ErrorPage,
+    LoginPage,
+    UsersPage,
+    TypePage,
+    JobsPage
+} from '@/pages';
+
 import AdminLayout from '@/layouts';
 
 
@@ -19,7 +27,11 @@ const AppRoutes: React.FC = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/login" element={<LoginPage />} />
+                <Route
+                    path="/login"
+                    element={
+                        <LoginPage />
+                    } />
                 <Route
                     path="/"
                     element={
@@ -31,16 +43,59 @@ const AppRoutes: React.FC = () => {
                     }
                 />
                 <Route
-                    path="/dashboard"
+                    path="/categories"
                     element={
                         <AdminLayout>
                             <PrivateRoute>
-                                <DashboardPage />
+                                <CategoriesPage />
                             </PrivateRoute>
                         </AdminLayout>
                     }
                 />
-                <Route path="*" element={<ErrorPage statusCode={404} />} />
+                <Route
+                    path="/companies"
+                    element={
+                        <AdminLayout>
+                            <PrivateRoute>
+                                <CompaniesPage />
+                            </PrivateRoute>
+                        </AdminLayout>
+                    }
+                />
+                <Route
+                    path="/users"
+                    element={
+                        <AdminLayout>
+                            <PrivateRoute>
+                                <UsersPage />
+                            </PrivateRoute>
+                        </AdminLayout>
+                    }
+                />
+                <Route
+                    path="/type"
+                    element={
+                        <AdminLayout>
+                            <PrivateRoute>
+                                <TypePage />
+                            </PrivateRoute>
+                        </AdminLayout>
+                    }
+                />
+                <Route
+                    path="/jobs"
+                    element={
+                        <AdminLayout>
+                            <PrivateRoute>
+                                <JobsPage />
+                            </PrivateRoute>
+                        </AdminLayout>
+                    }
+                />
+                <Route path="*"
+                    element={
+                        <ErrorPage statusCode={404} />
+                    } />
             </Routes>
         </Router>
     );

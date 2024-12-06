@@ -6,4 +6,5 @@ module.exports = {
     user: require("./user"),
     type: require("./type"),
     midea: require("./midea"),
+    generateDescription: require("./ai"),
 };
