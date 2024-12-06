@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import { clearToken } from '@/store/slices/authSlice';
 import { Button, Typography } from 'antd';
-import { clearToken } from '../store/slices/authSlice';
 
 const DashboardPage: React.FC = () => {
     const dispatch = useDispatch();

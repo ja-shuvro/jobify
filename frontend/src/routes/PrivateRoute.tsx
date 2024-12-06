@@ -1,11 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store/index';
+import { RootState } from '@/store/index';
 
-import LoginPage from '../pages/login';
-import DashboardPage from '../pages/dashboard';
-import ErrorPage from '../pages/error';
+import LoginPage from '@/pages/login';
+import DashboardPage from '@/pages/dashboard';
+import ErrorPage from '@/pages/error';
+import AdminLayout from '@/layouts';
+
 
 const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
     // Check if a token exists in Redux state, meaning the user is authenticated
@@ -19,11 +21,23 @@ const AppRoutes: React.FC = () => {
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route
+                    path="/"
+                    element={
+                        <AdminLayout>
+                            <PrivateRoute>
+                                <DashboardPage />
+                            </PrivateRoute>
+                        </AdminLayout>
+                    }
+                />
+                <Route
                     path="/dashboard"
                     element={
-                        <PrivateRoute>
-                            <DashboardPage />
-                        </PrivateRoute>
+                        <AdminLayout>
+                            <PrivateRoute>
+                                <DashboardPage />
+                            </PrivateRoute>
+                        </AdminLayout>
                     }
                 />
                 <Route path="*" element={<ErrorPage statusCode={404} />} />

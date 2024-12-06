@@ -1,12 +1,12 @@
 import React from 'react';
-import { Form, Input, Button, Typography, message, Checkbox } from 'antd';
+import { Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useAppDispatch } from '../store';
-import { setToken } from '../store/slices/authSlice';
-import api from '../services/api';
+import { useAppDispatch } from '@/store';
+import { setToken } from '@/store/slices/authSlice';
+import api from '@/services/api';
 import Cookies from 'js-cookie';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const LoginPage: React.FC = () => {
     const [loading, setLoading] = React.useState(false);
@@ -93,11 +93,6 @@ const LoginPage: React.FC = () => {
                         </Button>
                     </Form.Item>
                 </Form>
-                {/* <div style={{ textAlign: 'center', marginTop: '10px' }}>
-                    <Text>
-                        Don't have an account? <a href="/register">Register</a>
-                    </Text>
-                </div> */}
             </div>
         </div>
     );
