@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Button, message, Space } from 'antd';
+import { Button, message, Space, Modal } from 'antd';
 import api from '@/services/api';
-import ReusableTable from '@/components/Table';
-import FormModal from '@/components/FormModal';
+import DataTable from '@/components/Table';
+import EntityModal from '@/components/EntityModal';
 import PreviewModal from '@/components/PreviewModal';
+import { BsPencilSquare, BsEyeFill, BsTrash3Fill } from "react-icons/bs"
 
 interface DataType {
     key: string;
@@ -48,7 +49,6 @@ const Companies: React.FC = () => {
     // Handle Add or Edit Company
     const handleAddOrEditCompany = async (values: any) => {
         if (editingData) {
-            // Edit existing company
             try {
                 await api.put(`/companies/${editingData.key}`, values);
                 setData((prevData) =>
@@ -64,7 +64,6 @@ const Companies: React.FC = () => {
                 message.error('Failed to update company.');
             }
         } else {
-            // Add new company
             try {
                 const response = await api.post('/companies', values);
                 setData((prevData) => [
@@ -87,6 +86,18 @@ const Companies: React.FC = () => {
         setEditingData(null);
     };
 
+    // Show confirmation before delete
+    const showDeleteConfirm = (key: string) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this company?',
+            content: 'This action cannot be undone.',
+            okText: 'Yes, Delete',
+            okType: 'danger',
+            cancelText: 'No, Cancel',
+            onOk: () => handleDeleteCompany(key),
+        });
+    };
+
     // Handle delete company
     const handleDeleteCompany = async (key: string) => {
         try {
@@ -96,19 +107,6 @@ const Companies: React.FC = () => {
         } catch (error) {
             console.error('Error deleting company:', error);
             message.error('Failed to delete company.');
-        }
-    };
-
-    // AI Text Generation Function
-    const generateAiText = async () => {
-        try {
-            const response = await fetch('/api/generate-description', { method: 'POST' });
-            const data = await response.json();
-            return data.generatedText;
-        } catch (error) {
-            console.error('Error generating text:', error);
-            message.error('Failed to generate AI text.');
-            return '';
         }
     };
 
@@ -138,10 +136,11 @@ const Companies: React.FC = () => {
             ),
         },
         {
-            title: 'Total Jobs',
+            title: 'Jobs',
             dataIndex: 'jobCount',
             key: 'jobCount',
             width: '10%',
+            sorter: (a: any, b: any) => a.jobCount - b.jobCount,
         },
         {
             title: 'Actions',
@@ -149,29 +148,30 @@ const Companies: React.FC = () => {
             render: (_: any, record: DataType) => (
                 <Space>
                     <Button
-                        type="link"
+                        type="default"
+                        className='bg-green-600 text-white hover:!bg-green-500 hover:!text-white !border-none'
                         onClick={() => {
                             setEditingData(record);
                             setIsModalVisible(true);
                         }}
                     >
-                        Edit
+                        <BsPencilSquare />
                     </Button>
                     <Button
-                        type="link"
+                        type="primary"
                         onClick={() => {
                             setPreviewData(record);
                             setIsPreviewVisible(true);
                         }}
                     >
-                        Preview
+                        <BsEyeFill />
                     </Button>
                     <Button
-                        type="link"
+                        type="primary"
                         danger
-                        onClick={() => handleDeleteCompany(record.key)}
+                        onClick={() => showDeleteConfirm(record.key)}
                     >
-                        Delete
+                        <BsTrash3Fill />
                     </Button>
                 </Space>
             ),
@@ -192,14 +192,23 @@ const Companies: React.FC = () => {
             {loading ? (
                 <p>Loading...</p>
             ) : (
-                <ReusableTable<DataType> data={data} columns={columns} />
+                <DataTable<DataType> data={data} columns={columns} />
             )}
-            <FormModal
+            <EntityModal
                 title="Create or Edit Company"
                 open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 onSubmit={handleAddOrEditCompany}
                 fields={[
+                    {
+                        name: 'profilePicture',
+                        label: 'Profile Picture',
+                        inputType: 'fileupload',
+                        uploadAction: '/upload',
+                        accept: '.png,.jpg,.jpeg',
+                        listType: 'picture',
+                        uploadButtonText: 'Upload Avatar',
+                    },
                     {
                         name: 'name',
                         label: 'Company Name',
@@ -207,22 +216,22 @@ const Companies: React.FC = () => {
                         rules: [{ required: true, message: 'Please enter the company name' }],
                     },
                     {
-                        name: 'description',
-                        label: 'Description',
-                        inputType: 'textarea',
-                        rules: [{ message: 'Please enter a description' }],
-                    },
-                    {
                         name: 'website',
                         label: 'Website',
                         rules: [{ type: 'url' }],
-                        inputType: 'url'
+                        inputType: 'text'
+                    },
+                    {
+                        name: 'description',
+                        label: 'Description',
+                        inputType: 'textarea',
+                        rules: [{ message: 'Please enter a description', }],
                     },
                 ]}
                 initialValues={editingData || { name: '', description: '' }}
                 okText="Save"
                 cancelText="Cancel"
-                onGenerateText={generateAiText}
+                entityType={"company"}
             />
             <PreviewModal
                 title="Company Details"

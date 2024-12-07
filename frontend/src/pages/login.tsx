@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
             message.success('Login successful!');
 
             // Redirect or navigate after successful login
-            window.location.href = '/dashboard';
+            window.location.href = '/';
         } catch (error: any) {
             const errorMessage = `${error.response?.data?.error} : ${error.response?.data?.message || error.response?.data?.error === "Forbidden" ? "Sorry! This route are protected for Super Admin and Admin!" : 'Login failed. Please check your credentials and try again.'}`;
             message.error(errorMessage);
