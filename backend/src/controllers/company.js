@@ -31,13 +31,33 @@ const getCompanies = async (req, res) => {
     try {
         const { page = 1, limit = 10, sort } = req.query;
 
+        // Define filters and options
         const filter = {};
         const options = {
-            sort: sort ? { name: sort } : { createdAt: -1 },
+            sort: sort ? { name: sort === "asc" ? 1 : -1 } : { createdAt: -1 },
         };
 
-        const paginatedData = await paginate(Company, filter, parseInt(page), parseInt(limit), options);
+        // Define a projection for desired fields
+        const projection = {
+            name: 1,
+            description: 1,
+            jobCount: 1,
+            website: 1,
+            createdBy: 1,
+            createdAt: 1,
+        };
 
+        // Call the paginate function
+        const paginatedData = await paginate(
+            Company,
+            filter,
+            parseInt(page),
+            parseInt(limit),
+            options,
+            projection
+        );
+
+        // Respond with the paginated data
         res.status(200).json(paginatedData);
     } catch (error) {
         res.status(500).json({ error: error.message });

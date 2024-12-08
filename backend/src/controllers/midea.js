@@ -1,40 +1,34 @@
 const Media = require("../models/midea");
 
-const { upload, handleFileUpload } = require("../utils/fileUpload");
-
 // Upload Media Controller
-const uploadMedia = async (req, res) => {
+const uploadMedia = async (req, res, next) => {
     try {
-        const processedFiles = req.processedFiles;
+        const processedFile = req.processedFiles;
 
-        if (!processedFiles || processedFiles.length === 0) {
+        if (!processedFile) {
             return res.status(400).json({ error: "No files were processed." });
         }
 
-        // Save each processed file's metadata to the database
-        const mediaEntries = await Promise.all(
-            processedFiles.map(async (file) => {
-                const media = new Media({
-                    original: file.original,
-                    thumbnail: file.variants.thumbnail,
-                    mobile: file.variants.mobile,
-                    tab: file.variants.tab,
-                    desktop: file.variants.desktop,
-                    type: file.original.endsWith(".webp") ? "image" : "file",
-                });
-                return await media.save();
-            })
-        );
+        // Save processed file metadata to the database
+        const mediaEntry = await new Media({
+            original: processedFile.original,
+            thumbnail: processedFile.thumbnail,
+            mobile: processedFile.mobile,
+            tab: processedFile.tablet,
+            desktop: processedFile.desktop,
+            type: processedFile.type,
+        }).save();
 
         res.status(201).json({
-            message: "Files uploaded and saved successfully.",
-            media: mediaEntries,
+            message: "File uploaded and saved successfully.",
+            media: mediaEntry,
         });
     } catch (error) {
         console.error("Error in uploadMedia:", error);
         res.status(500).json({ error: error.message });
     }
 };
+
 
 // Get All Media
 const getAllMedia = async (req, res) => {

@@ -1,18 +1,22 @@
 const Job = require("../models/job");
 const { paginate } = require("..//utils/pagination");
-const generateDescription = require("../services/aiService");
 
 // Create Job
 const createJob = async (req, res) => {
     try {
-        const { title, company, category, createdBy, location, salary, jobType, description } = req.body;
+        const { title, company, category, location, salary, jobType, description } = req.body;
 
         if (!title || !company || !category || !location || !salary || !jobType) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        // Generate job description using AI
-        const aiGeneratedDescription = await generateDescription({
+        // Validate that salary is a positive number
+        if (isNaN(salary) || salary <= 0) {
+            return res.status(400).json({ message: "Salary must be a positive number" });
+        }
+
+        // Create the job document
+        const job = new Job({
             title,
             company,
             category,
@@ -20,19 +24,10 @@ const createJob = async (req, res) => {
             salary,
             jobType,
             description,
-        }, "job");
-
-        const job = new Job({
-            title,
-            company,
-            category,
-            createdBy,
-            location,
-            salary,
-            jobType,
-            description: aiGeneratedDescription,
+            createdBy: req.user.id
         });
 
+        // Save the job document in a transaction
         await job.save();
 
         res.status(201).json(job);
@@ -45,14 +40,60 @@ const createJob = async (req, res) => {
 const getJobs = async (req, res) => {
     try {
         const { page = 1, limit = 10, sort } = req.query;
+
+        // Define filter criteria (empty for now)
         const filter = {};
+
+        // Define options for sorting
         const options = {
-            sort: sort ? { createdAt: sort } : { createdAt: -1 },
+            sort: sort ? { createdAt: sort === "asc" ? 1 : -1 } : { createdAt: -1 },
         };
 
-        const paginatedData = await paginate(Job, filter, parseInt(page), parseInt(limit), options);
+        // Define projection fields (optional)
+        const projection = {
+            title: 1,
+            category: 1,
+            company: 1,
+            createdBy: 1,
+            description: 1,
+            location: 1,
+            salary: 1,
+            jobType: 1,
+            createdAt: 1,
+        };
 
-        res.status(200).json(paginatedData);
+        // Apply populate and pagination logic
+        const jobsQuery = Job.find(filter, projection)
+            .populate('category')  // Populate the category field
+            .populate('company')   // Populate the company field
+            .populate('jobType')   // Populate the jobType field
+            .sort(options.sort);
+
+        // Count total jobs for pagination info
+        const totalCount = await Job.countDocuments(filter);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalCount / parseInt(limit));
+
+        // Determine if there are next or previous pages
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+
+        // Paginate the query
+        const results = await jobsQuery
+            .skip((parseInt(page) - 1) * parseInt(limit))
+            .limit(parseInt(limit));
+
+        // Send response with paginated data
+        res.status(200).json({
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalCount,
+            totalPages,
+            hasNextPage,
+            hasPrevPage,
+            results, // The actual job results
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

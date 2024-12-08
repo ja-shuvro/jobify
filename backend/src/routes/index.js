@@ -5,4 +5,5 @@ module.exports = {
     userRoutes: require("./user"),
     typeRoutes: require("./type"),
     mideaRoutes: require("./midea"),
+    generateDescriptionRoutes: require("./generateDescription"),
 }
