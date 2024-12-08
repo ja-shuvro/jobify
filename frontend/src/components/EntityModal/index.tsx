@@ -10,6 +10,7 @@ import {
     Upload,
     Radio,
     message,
+    InputNumber
 } from 'antd';
 import { generateDescription } from '@/services/aiService';
 import { UploadOutlined } from '@ant-design/icons';
@@ -24,7 +25,7 @@ interface OptionType {
 interface FieldType {
     name: string;
     label: string;
-    inputType?: 'text' | 'textarea' | 'password' | 'dropdown' | 'checkbox' | 'fileupload' | 'radio';
+    inputType?: 'text' | 'textarea' | 'password' | 'dropdown' | 'checkbox' | 'fileupload' | 'radio' | 'number';
     placeholder?: string;
     rules?: object[];
     options?: OptionType[];
@@ -44,6 +45,9 @@ interface FormModalProps {
     okText?: string;
     cancelText?: string;
     entityType: string;
+    categories: [{ label: string, value: string }];
+    companies: [{ label: string, value: string }];
+    jobTypes: [{ label: string, value: string }];
 }
 
 const FormModal: React.FC<FormModalProps> = ({
@@ -56,6 +60,9 @@ const FormModal: React.FC<FormModalProps> = ({
     okText = 'Save',
     cancelText = 'Cancel',
     entityType,
+    categories,
+    companies,
+    jobTypes,
 }) => {
     const [form] = Form.useForm();
     const [isGenerating, setIsGenerating] = useState(false);
@@ -73,18 +80,44 @@ const FormModal: React.FC<FormModalProps> = ({
     const handleOk = async () => {
         try {
             const values = await form.validateFields();
-            console.log(values);
-
             onSubmit(values);
             form.resetFields(); // Reset fields after successful submission
         } catch (error) {
             console.error('Validation failed:', error);
         }
     };
-
     const handleGenerateText = async () => {
         try {
-            const values = await form.validateFields();
+            let values = await form.validateFields();
+
+            // Check if values have categories, companies, or jobTypes and map IDs to labels
+            if (values.category) {
+                const category = categories.find(cat => cat.value === values.category);
+                if (category) {
+                    values.category = category.label;  // Update to category label
+                } else {
+                    console.error(`Category ID ${values.category} not found.`);
+                }
+            }
+
+            if (values.company) {
+                const company = companies.find(comp => comp.value === values.company);
+                if (company) {
+                    values.company = company.label;  // Update to company label
+                } else {
+                    console.error(`Company ID ${values.company} not found.`);
+                }
+            }
+
+            if (values.jobType) {
+                const jobType = jobTypes.find(type => type.value === values.jobType);
+                if (jobType) {
+                    values.jobType = jobType.label;  // Update to job type label
+                } else {
+                    console.error(`Job Type ID ${values.jobType} not found.`);
+                }
+            }
+
             setIsGenerating(true);
             const generatedText = await generateDescription(values, entityType);
             form.setFieldsValue({ description: generatedText });
@@ -95,6 +128,9 @@ const FormModal: React.FC<FormModalProps> = ({
             setIsGenerating(false);
         }
     };
+
+
+
 
     const handleUploadChange = (info: any, fieldName: string) => {
         const { file } = info;
@@ -135,6 +171,9 @@ const FormModal: React.FC<FormModalProps> = ({
                         )}
                         {field.inputType === 'text' && (
                             <Input type="text" placeholder={field.placeholder || ''} />
+                        )}
+                        {field.inputType === 'number' && (
+                            <InputNumber prefix="$" className='w-full' min={0} placeholder={field.placeholder || ''} />
                         )}
                         {field.inputType === 'password' && (
                             <Input.Password placeholder={field.placeholder || ''} />

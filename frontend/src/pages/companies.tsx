@@ -14,7 +14,7 @@ interface DataType {
     jobCount: number;
 }
 
-const Companies: React.FC = () => {
+const CompaniesPage: React.FC = () => {
     const [data, setData] = useState<DataType[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
@@ -261,4 +261,4 @@ const Companies: React.FC = () => {
     );
 };
 
-export default Companies;
+export default CompaniesPage;

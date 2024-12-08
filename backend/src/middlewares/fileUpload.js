@@ -1,13 +1,12 @@
 const multer = require("multer");
-const sharp = require("sharp");
+const cloudinary = require("cloudinary").v2;
+const multerStorageCloudinary = require("multer-storage-cloudinary").CloudinaryStorage;
 const path = require("path");
 const fs = require("fs").promises;
 const fsExtra = require("fs-extra");
 
 // Configuration Object
 const CONFIG = {
-    ORIGINAL_DIR: process.env.ORIGINAL_DIR || "uploads/originals",
-    VARIANTS_DIR: process.env.VARIANTS_DIR || "uploads/variants",
     MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
     ALLOWED_MIME_TYPES: [
         "image/jpeg",
@@ -22,7 +21,14 @@ const CONFIG = {
     ],
 };
 
-// Utility: Create directories if not exist
+// Cloudinary Configuration (Add your credentials)
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Utility: Create directories if not exist (not needed for Cloudinary but kept for local fallbacks)
 const ensureDirectory = async (dir) => {
     try {
         await fs.mkdir(dir, { recursive: true });
@@ -32,19 +38,12 @@ const ensureDirectory = async (dir) => {
     }
 };
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-    destination: async (req, file, cb) => {
-        try {
-            await ensureDirectory(CONFIG.ORIGINAL_DIR);
-            cb(null, CONFIG.ORIGINAL_DIR);
-        } catch (err) {
-            cb(err);
-        }
-    },
-    filename: (req, file, cb) => {
-        const uniqueName = `${Date.now()}-${path.parse(file.originalname).name}.webp`;
-        cb(null, uniqueName);
+// Multer Storage Configuration using Cloudinary
+const storage = new multerStorageCloudinary({
+    cloudinary: cloudinary,
+    params: {
+        folder: "uploads",  // Optional: specify a folder in your Cloudinary account
+        allowed_formats: ["jpeg", "png", "webp", "pdf", "doc", "docx", "xlsx", "txt"], // Allowed formats
     },
 });
 
@@ -61,60 +60,31 @@ const upload = multer({
     },
 });
 
-// Generate Variants
-const generateVariants = async (filePath, filename) => {
-    try {
-        await ensureDirectory(CONFIG.VARIANTS_DIR);
+// Generate Variants using Cloudinary transformations
+const generateVariants = async (file) => {
+    const sizes = {
+        thumbnail: { width: 100, height: 100 },
+        mobile: { width: 480 },
+        tablet: { width: 768 },
+        desktop: { width: 1920 },
+    };
 
-        const sizes = {
-            thumbnail: { width: 100, height: 100 },
-            mobile: { width: 480 },
-            tablet: { width: 768 },
-            desktop: { width: 1920 },
+    const variants = {};
+
+    // For each size, generate the variant with the transformation applied
+    for (const [key, size] of Object.entries(sizes)) {
+        const transformation = {
+            width: size.width,
+            height: size.height || null,
+            crop: "fit",
+            quality: key === "desktop" ? 90 : 80,
         };
-
-        const variants = {};
-
-        for (const [key, size] of Object.entries(sizes)) {
-            const outputPath = path.join(`${key}-${filename}`);
-            await sharp(filePath)
-                .resize(size.width, size.height || null, { fit: "cover" })
-                .webp({ quality: key === "desktop" ? 90 : 80 })
-                .toFile(outputPath);
-            variants[key] = outputPath;
-        }
-
-        sharp.cache(false);
-        return variants;
-    } catch (error) {
-        console.error("Error generating variants:", error);
-        throw error;
+        variants[key] = cloudinary.url(file.filename, { transformation });
     }
+
+    return variants;
 };
 
-// File Deletion with Retry Logic
-const deleteFileWithRetry = async (filePath, retries = 5, delay = 1000) => {
-    try {
-        await fsExtra.remove(filePath);
-        console.log(`File deleted successfully: ${filePath}`);
-    } catch (err) {
-        if (err.code === "EPERM" || err.code === "EBUSY") {
-            console.error("Error: File is in use or locked. Attempting to change permissions.");
-            try {
-                await fs.chmod(filePath, 0o666); // Adjust permissions
-            } catch (chmodErr) {
-                console.error("Error changing file permissions:", chmodErr);
-            }
-        }
-        if (retries > 0) {
-            console.log(`Retrying to delete file: ${filePath}`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            return deleteFileWithRetry(filePath, retries - 1, delay * 2);
-        } else {
-            console.error("Failed to delete file after retries:", err);
-        }
-    }
-};
 
 // File Upload and Processing Middleware
 const handleFileUpload = async (req, res, next) => {
@@ -125,43 +95,18 @@ const handleFileUpload = async (req, res, next) => {
             return res.status(400).json({ success: false, error: "No file uploaded." });
         }
 
-        const filename = `${Date.now()}-${path.parse(file.originalname).name}.webp`;
-        const webpFilePath = path.join(filename);
+        // Cloudinary provides the file URL and public_id
+        const fileUrl = file.path;
 
-        try {
-            await sharp(file.path).webp({ quality: 80 }).toFile(webpFilePath);
-        } catch (err) {
-            console.error("Error converting file to WebP:", err);
-            return res.status(500).json({ success: false, error: "Error processing file." });
-        }
+        // Generate variants (if needed) using Cloudinary URLs
+        const variants = await generateVariants(file);
 
-        const variants = await generateVariants(webpFilePath, filename);
-
-        // Delete original file if it's not a WebP
-        if (!file.originalname.endsWith(".webp")) {
-            try {
-                await new Promise((resolve) => setTimeout(resolve, 1000)); // Delay for safety
-                await deleteFileWithRetry(file.path);
-            } catch (err) {
-                console.error("Error deleting original file:", err);
-            }
-        }
-
-        // Determine type based on MIME type
-        const isImage = file.mimetype.startsWith("image/");
-        const type = isImage ? "image" : "file";
-
-        // Populate processed files object
+        // Prepare the response data
         req.processedFiles = {
-            original: webpFilePath,
-            thumbnail: variants.thumbnail,
-            mobile: variants.mobile,
-            tablet: variants.tablet,
-            desktop: variants.desktop,
-            type,
+            original: fileUrl,
+            ...variants,
+            type: file.mimetype.startsWith("image/") ? "image" : "file",
         };
-
-        console.log("Processed Files:", req.processedFiles);
 
         next();
     } catch (error) {
@@ -170,12 +115,9 @@ const handleFileUpload = async (req, res, next) => {
     }
 };
 
-
-
 // Graceful Shutdown
 const gracefulShutdown = () => {
-    console.log("Gracefully shutting down...");
-    sharp.cache(false); // Clear sharp cache
+    sharp.cache(false);
     process.exit(0);
 };
 

@@ -4,7 +4,6 @@ const Media = require("../models/midea");
 const uploadMedia = async (req, res, next) => {
     try {
         const processedFile = req.processedFiles;
-        console.log('processedFile:', processedFile);
 
         if (!processedFile) {
             return res.status(400).json({ error: "No files were processed." });

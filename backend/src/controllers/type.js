@@ -23,18 +23,33 @@ const getJobTypes = async (req, res) => {
     try {
         const { page = 1, limit = 10, sort } = req.query;
 
+        // Define filter criteria (empty for now)
         const filter = {};
+
+        // Define options for sorting
         const options = {
-            sort: sort ? { name: sort } : { createdAt: -1 },
+            sort: sort ? { name: sort === "asc" ? 1 : -1 } : { createdAt: -1 },
         };
 
-        const paginatedData = await paginate(JobType, filter, parseInt(page), parseInt(limit), options);
+        // Define projection fields (optional fields to include in the result)
+        const projection = {
+            name: 1,
+            description: 1,
+            jobCount: 1,
+            createdBy: 1,
+            createdAt: 1,
+        };
 
+        // Call the paginate function with projection
+        const paginatedData = await paginate(JobType, filter, parseInt(page), parseInt(limit), options, projection);
+
+        // Send response with the paginated data
         res.status(200).json(paginatedData);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 // Get a single JobType by ID with populated relationships
 const getJobTypeById = async (req, res) => {

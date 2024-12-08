@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
             dispatch(setToken(token));
 
             // Set the token in a secure cookie (1 day expiration)
-            Cookies.set('authToken', token, { expires: 1, secure: true, sameSite: 'Strict' });
+            Cookies.set('authToken', token, { secure: true, sameSite: 'Strict' });
 
             message.success('Login successful!');
 

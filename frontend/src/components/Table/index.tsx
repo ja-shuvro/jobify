@@ -110,7 +110,7 @@ const DataTable = <T extends Record<string, any>>({
                 },
             },
             render: (text: any) => {
-                const truncatedText = text && text.length > 200 ? `${text.substring(0, 200)}...` : text;
+                const truncatedText = text && text.length > 200 ? `${text.substring(0, 100)}...` : text;
                 return searchedColumn === dataIndex ? (
                     <Highlighter
                         highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}

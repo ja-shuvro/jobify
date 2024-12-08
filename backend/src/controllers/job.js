@@ -1,16 +1,10 @@
 const Job = require("../models/job");
-const Category = require("../models/category");
-const Company = require("../models/company");
-const Type = require("../models/type");
 const { paginate } = require("..//utils/pagination");
-const generateDescription = require("../services/aiService");
 
 // Create Job
 const createJob = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-        const { title, company, category, createdBy, location, salary, jobType, description } = req.body;
+        const { title, company, category, location, salary, jobType, description } = req.body;
 
         if (!title || !company || !category || !location || !salary || !jobType) {
             return res.status(400).json({ message: "All fields are required" });
@@ -21,8 +15,8 @@ const createJob = async (req, res) => {
             return res.status(400).json({ message: "Salary must be a positive number" });
         }
 
-        // Generate job description using AI
-        const aiGeneratedDescription = await generateDescription({
+        // Create the job document
+        const job = new Job({
             title,
             company,
             category,
@@ -30,61 +24,76 @@ const createJob = async (req, res) => {
             salary,
             jobType,
             description,
-        }, "job");
-
-        const job = new Job({
-            title,
-            company,
-            category,
-            createdBy,
-            location,
-            salary,
-            jobType,
-            description: aiGeneratedDescription,
+            createdBy: req.user.id
         });
 
-        // Save the job document
-        await job.save({ session });
-
-        // Update the job count for category, company, and jobType
-        const jobCategory = await Category.findById(category).session(session);
-        jobCategory.jobCount++;
-        await jobCategory.save({ session });
-
-        const jobCompany = await Company.findById(company).session(session);
-        jobCompany.jobCount++;
-        await jobCompany.save({ session });
-
-        const jobTypes = await Type.findById(jobType).session(session);
-        jobTypes.jobCount++;
-        await jobTypes.save({ session });
-
-        // Commit the transaction
-        await session.commitTransaction();
-        session.endSession();
+        // Save the job document in a transaction
+        await job.save();
 
         res.status(201).json(job);
     } catch (err) {
-        // Abort the transaction in case of error
-        await session.abortTransaction();
-        session.endSession();
         res.status(400).json({ error: err.message });
     }
 };
-
 
 // Get Jobs with Filtering, Sorting, and Pagination
 const getJobs = async (req, res) => {
     try {
         const { page = 1, limit = 10, sort } = req.query;
+
+        // Define filter criteria (empty for now)
         const filter = {};
+
+        // Define options for sorting
         const options = {
-            sort: sort ? { createdAt: sort } : { createdAt: -1 },
+            sort: sort ? { createdAt: sort === "asc" ? 1 : -1 } : { createdAt: -1 },
         };
 
-        const paginatedData = await paginate(Job, filter, parseInt(page), parseInt(limit), options);
+        // Define projection fields (optional)
+        const projection = {
+            title: 1,
+            category: 1,
+            company: 1,
+            createdBy: 1,
+            description: 1,
+            location: 1,
+            salary: 1,
+            jobType: 1,
+            createdAt: 1,
+        };
 
-        res.status(200).json(paginatedData);
+        // Apply populate and pagination logic
+        const jobsQuery = Job.find(filter, projection)
+            .populate('category')  // Populate the category field
+            .populate('company')   // Populate the company field
+            .populate('jobType')   // Populate the jobType field
+            .sort(options.sort);
+
+        // Count total jobs for pagination info
+        const totalCount = await Job.countDocuments(filter);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalCount / parseInt(limit));
+
+        // Determine if there are next or previous pages
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+
+        // Paginate the query
+        const results = await jobsQuery
+            .skip((parseInt(page) - 1) * parseInt(limit))
+            .limit(parseInt(limit));
+
+        // Send response with paginated data
+        res.status(200).json({
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalCount,
+            totalPages,
+            hasNextPage,
+            hasPrevPage,
+            results, // The actual job results
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

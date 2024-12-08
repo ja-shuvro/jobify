@@ -20,6 +20,7 @@ import AdminLayout from '@/layouts';
 const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
     // Check if a token exists in Redux state, meaning the user is authenticated
     const token = useSelector((state: RootState) => state.auth.token);
+
     return token ? children : <Navigate to="/login" />;
 };
 
