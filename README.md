@@ -1,38 +1,40 @@
 # Jobify
 
-Jobify is a job portal application that allows companies to post job opportunities and users to search and apply for jobs. The project is built with a **backend** that supports user authentication, job posting, and job search functionality. It is designed to provide an easy-to-use platform for employers and job seekers.
+Jobify is a job portal application that connects employers with potential employees. It allows companies to post job opportunities and users to search and apply for jobs. The project is built with a **backend** supporting user authentication, job posting, and search functionality, designed to provide an easy-to-use platform for employers and job seekers.
 
 ---
 
 ## Features
 
 - **User Authentication:**
-  - Sign-up and login functionality for users and companies.
+  - User and company sign-up and login functionality.
   - JWT-based authentication for secure user sessions.
-  
+  - Role-based access control for users and companies.
+
 - **Job Posting:**
-  - Companies can create and manage job postings.
-  - Job details such as title, description, company name, and job type.
+  - Companies can create, manage, and update job postings.
+  - Job details include title, description, location, salary, and job type.
 
 - **Job Search:**
-  - Job seekers can search for job postings based on different filters (e.g., job title, location, company, etc.).
+  - Job seekers can search for job postings based on filters such as job title, location, company, salary range, and job type.
+  - Pagination for displaying job results.
 
 - **Backend Services:**
-  - RESTful API for managing user and job data.
+  - RESTful API for managing users, job data, and authentication.
   - Data storage using **MongoDB** for users and job listings.
-  
+
 ---
 
 ## Tech Stack
 
 ### Backend
-- **Node.js**: JavaScript runtime is used to build the backend.
-- **Express.js**: Web framework for building APIs.
-- **JWT**: JSON Web Tokens for user authentication.
-- **MongoDB**: Database for user-related data (e.g., profile, authentication).
-- **Redis**: Caching service for fast access to frequently used data.
-- **Bcryptjs**: Library for securely hashing user passwords.
-- **Helmet**: Middleware for setting security-related HTTP headers.
+- **Node.js**: JavaScript runtime used to build the backend.
+- **Express.js**: Web framework for building RESTful APIs.
+- **JWT (JSON Web Tokens)**: For secure user authentication and session management.
+- **MongoDB**: NoSQL database for storing user profiles and job listings.
+- **Bcryptjs**: Library for securely hashing and verifying user passwords.
+- **Helmet**: Middleware for securing HTTP headers and protecting the app from common security vulnerabilities.
+- **Mongoose**: Object Data Modeling (ODM) for MongoDB to define and manage schemas.
 
 ---
 
@@ -43,16 +45,15 @@ Jobify is a job portal application that allows companies to post job opportuniti
 Make sure you have the following installed:
 - **Node.js** (v14 or higher)
 - **MongoDB** (local or hosted)
-- **Redis** (local or hosted)
 
 ### Steps
 
 1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/your-username/jobify.git
+   git clone https://github.com/ja-shuvro/jobify.git
    cd jobify/backend
-  
+   ```
 
 2. **Install Backend Dependencies**:
 
@@ -60,19 +61,22 @@ Make sure you have the following installed:
 
    ```bash
    npm install
-
+   ```
 
 3. **Set Up Environment Variables**:
 
    Create a `.env` file in the root of the backend folder and add the following variables:
 
    ```env
-   PORT=5000
-   JWT_SECRET=your_jwt_secret
-   JWT_EXPIRY=1d
-   MONGO_URI=mongodb://localhost:27017/jobify
-   REDIS_HOST=127.0.0.1
-   REDIS_PORT=6379
+      PORT=5000
+      MONGO_URI=mongodb://localhost:27017/jobify
+      JWT_SECRET=your_jwt_secret_here
+      JWT_EXPIRY=1d
+      CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+      CLOUDINARY_API_KEY=your_cloudinary_api_key_here
+      CLOUDINARY_API_SECRET=your_cloudinary_api_secret_here
+      OPENAI_API_KEY=your_openai_api_key_here
+
    ```
 
 4. **Run the Backend**:
@@ -83,7 +87,7 @@ Make sure you have the following installed:
    npm run dev
    ```
 
-   Your server will be running on `http://localhost:5000`.
+   The backend server will now be running on `http://localhost:5000`.
 
 ---
 
@@ -91,14 +95,23 @@ Make sure you have the following installed:
 
 ### Authentication
 
-- **POST /api/auth/register**: Register a new user.
-- **POST /api/auth/login**: Login an existing user.
+- **POST /api/auth/register**: Register a new user or company.
+  - Request body: `{ "email": "user@example.com", "password": "password123", "role": "super-admin|admin|user" }`
+  
+- **POST /api/auth/login**: Login an existing user or company and receive a JWT token.
+  - Request body: `{ "email": "user@example.com", "password": "password123" }`
 
 ### Jobs
 
-- **GET /api/jobs**: Get a list of all job postings.
+- **GET /api/jobs**: Get a list of all job postings with pagination.
+  - Query parameters: `page`, `limit`, `title`, `location`, `company`, `jobType`
+  - Example: `/api/jobs?page=1&limit=10&title=developer&location=remote`
+
 - **POST /api/jobs**: Create a new job posting (company only).
-- **GET /api/jobs/:id**: Get details of a specific job posting.
+  - Request body: `{ "title": "Job Title", "description": "Job Description", "company": "Company ID", "location": "Location", "salary": "100000", "jobType": "full-time" }`
+
+- **GET /api/jobs/:id**: Get details of a specific job posting by ID.
+  - Example: `/api/jobs/123456`
 
 ---
 
@@ -122,26 +135,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgements
 
-- **Node.js** - JavaScript runtime.
+- **Node.js** - JavaScript runtime for building the backend.
 - **Express.js** - Web framework for building APIs.
-- **JWT** - Authentication solution.
-- **MongoDB** - Databases for storing user and job data.
-- **Redis** - Caching mechanism.
-
-
----
-
-### Explanation:
-
-- **Introduction**: Provides an overview of the project and what it does.
-- **Features**: Lists the key features of the application.
-- **Tech Stack**: Describes the technologies used for both backend and database.
-- **Installation**: Provides detailed steps for setting up the project on your local machine.
-- **API Endpoints**: Lists the key API endpoints for user authentication and job-related actions.
-- **Contributing**: Instructions for contributing to the project.
-- **License**: The project is open-source and follows the MIT License.
-- **Acknowledgements**: Mentions the technologies used in the project.
+- **JWT** - Authentication solution for secure sessions.
+- **MongoDB** - NoSQL database for storing data.
+- **Bcryptjs** - Secure password hashing and verification.
+- **Mongoose** - Object Data Modeling (ODM) for MongoDB schemas.
 
 ---
 
-You can adjust it according to your project setup and personal preferences!
+### Updates:
+
+- Added role-based user authentication with JWT (users and companies).
+- API now supports pagination for job listings.
+
+---
+
+Feel free to modify this further based on your project setup and any additional features you want to highlight!
